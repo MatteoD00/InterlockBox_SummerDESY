@@ -34,6 +34,7 @@
 #include <Wire.h>
 #include <Adafruit_SHT31.h> // Not used in DESY setup
 #include <WiFiNINA.h>
+#include <ArdunoOTA.h>
 #include "arduino_secrets.h" //must be created to store WiFi credentials
 #include "config_io.h" // define configuration of pins and other parameters
 
@@ -162,6 +163,8 @@ void setup() {
   Serial.println("\n\nRestart Arduino");
   setDigitalPins();
   setupWiFi();
+  // start the WiFi OTA library with internal (flash) based storage
+  ArduinoOTA.begin(WiFi.localIP(), "Arduino", "password", InternalStorage);
 
   nloop = 0;
 	pinMode(SENS_PW, OUTPUT);
@@ -172,6 +175,9 @@ void setup() {
 }
 
 void loop() {
+  // Check for OTA update
+  ArduinoOTA.poll();
+  
   char msg[128] = { NULL };
   snprintf(msg, sizeof(msg),"\nStart of loop n.%d",nloop);
   Serial.println(msg);
