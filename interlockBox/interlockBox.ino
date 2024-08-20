@@ -34,6 +34,7 @@
 #include <Wire.h>
 #include <Adafruit_SHT31.h> // Not used in DESY setup
 #include <WiFiNINA.h>
+#include <ArduinoOTA.h>
 #include "arduino_secrets.h" //must be created to store WiFi credentials
 #include "config_io.h" // define configuration of pins and other parameters
 
@@ -139,13 +140,13 @@ void set_CO2() {
 }
 
 void setDigitalPins(){ // Set the default function (I/O) for the digital pins
-  pinMode(gpio[0], INPUT); // GPIO_1
-  pinMode(gpio[1], OUTPUT); // GPIO_2
+  pinMode(gpio[0], OUTPUT); // GPIO_1
+  pinMode(gpio[1], INPUT); // GPIO_2
   pinMode(gpio[2], INPUT); // GPIO_3
   pinMode(gpio[3], INPUT); // GPIO_4
   pinMode(RELAY4, OUTPUT);
 
-  digitalWrite(gpio[1], LOW); // GPIO_2
+  digitalWrite(gpio[0], HIGH); // GPIO_2
   digitalWrite(RELAY4, LOW);
 }
 
@@ -157,6 +158,8 @@ void setup() {
   Serial.println("\n\nRestart Arduino");
   setDigitalPins();
   setupWiFi();
+  // start the WiFi OTA library with internal (flash) based storage
+  ArduinoOTA.begin(WiFi.localIP(), "Arduino", "password", InternalStorage);
 
   nloop = 0;
 	pinMode(SENS_PW, OUTPUT);
@@ -167,6 +170,9 @@ void setup() {
 }
 
 void loop() {
+  // Check for OTA update
+  ArduinoOTA.poll();
+  
   char msg[128] = { NULL };
   snprintf(msg, sizeof(msg),"\nStart of loop n.%d",nloop);
   Serial.println(msg);
@@ -205,22 +211,22 @@ void loop() {
 		snprintf(msg, sizeof(msg), "NTC_%d", ch);
 		snprintf(msg, sizeof(msg), " --> NTC_Temp: %0.2f", Temp);
     */
-    if(Temp < 50.){
-      digitalWrite(gpio[1], LOW);
-      digitalWrite(RELAY4, LOW);
-    }
-    else{
-      digitalWrite(gpio[1], HIGH);
-      digitalWrite(RELAY4, HIGH);
-    }
+
 	}
 
   if(boolFlow){
     float flow = readFlow(4);
-    snprintf(msg,sizeof(msg),"Current airflow is: %.2f l/s",flow);
-    Serial.println(msg)
+    snprintf(msg,sizeof(msg),"Current airflow is: %.2f l/min",flow);
+    Serial.println(msg);
   }
-
+  if(digitalRead(gpio[1])){
+    digitalWrite(gpio[0], HIGH);
+    digitalWrite(RELAY4, LOW);
+  }
+  else{
+    digitalWrite(gpio[0], LOW);
+    digitalWrite(RELAY4, HIGH);
+  }
   // Read GPIO connections
   for(int i = 0; i < nGPIO; i++){
     bool dout = digitalRead(gpio[i]);
@@ -237,7 +243,7 @@ void loop() {
   snprintf(msg,sizeof(msg),"End of loop n.%d",nloop);
   Serial.println(msg);
   nloop++;
-	delay(5000);
+	delay(2000);
 }
 
 bool I2C_SW(byte cn) {
@@ -369,7 +375,8 @@ float readNTC(byte n) {
 
 float readFlow(int n){
   analogReadResolution(12);
-  float Vflow = analogRead(n)*VOLTS; // ADC maximum voltage is 3.3V, flow meter range 0-10V or 1-5V or 4-20mA
+  float Vflow = analogRead(n) * VOLTS; // ADC maximum voltage is 3.3V, flow meter range 0-10V or 1-5V or 4-20mA
+  Serial.println(Vflow);
   float outflow = ( ( Vflow - LOWSIG_FLOW ) / ( HISIG_FLOW - LOWSIG_FLOW ) ) * ( MAX_FLOW - MIN_FLOW ) + MIN_FLOW;
   return outflow;
 }

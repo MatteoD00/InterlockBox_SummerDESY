@@ -23,7 +23,7 @@
 
 //Flow meter parameters
 #define LOWSIG_FLOW 0.  // or 1 or 4
-#define HISIG_FLOW 10.  // or 5 or 20
+#define HISIG_FLOW 3.3 // or 5 or 20
 #define MIN_FLOW 0.
 #define MAX_FLOW 5.
 
