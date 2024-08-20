@@ -34,7 +34,7 @@
 #include <Wire.h>
 #include <Adafruit_SHT31.h> // Not used in DESY setup
 #include <WiFiNINA.h>
-#include <ArdunoOTA.h>
+#include <ArduinoOTA.h>
 #include "arduino_secrets.h" //must be created to store WiFi credentials
 #include "config_io.h" // define configuration of pins and other parameters
 
@@ -48,16 +48,10 @@ int status = WL_IDLE_STATUS;
 byte mac[6];
 //define number of sensors connected
 const int nHYT = 2;
-<<<<<<< HEAD
 const int nNTC = 2;
 const int nGPIO = 4;
 const bool boolFlow = true;
 const int pinFlow = 4;
-=======
-const int nNTC = 1;
-const int nGPIO = 4;
->>>>>>> bced26c (Initial version of DESY interlockbox script)
-
 SensirionI2CScd4x scd4x;
 
 const byte channel[CHANNEL_NUM] PROGMEM = { 0b0001, 0b0010, 0b0100, 0b1000 };
@@ -145,13 +139,13 @@ void set_CO2() {
 }
 
 void setDigitalPins(){ // Set the default function (I/O) for the digital pins
-  pinMode(gpio[0], INPUT); // GPIO_1
-  pinMode(gpio[1], OUTPUT); // GPIO_2
+  pinMode(gpio[0], OUTPUT); // GPIO_1
+  pinMode(gpio[1], INPUT); // GPIO_2
   pinMode(gpio[2], INPUT); // GPIO_3
   pinMode(gpio[3], INPUT); // GPIO_4
   pinMode(RELAY4, OUTPUT);
 
-  digitalWrite(gpio[1], LOW); // GPIO_2
+  digitalWrite(gpio[0], HIGH); // GPIO_2
   digitalWrite(RELAY4, LOW);
 }
 
@@ -212,34 +206,25 @@ void loop() {
 
 	for (int ch = 0; ch < nNTC; ch++) {
     Temp = readNTC(ch);
-<<<<<<< HEAD
     /*
 		snprintf(msg, sizeof(msg), "NTC_%d", ch);
 		snprintf(msg, sizeof(msg), " --> NTC_Temp: %0.2f", Temp);
     */
-=======
-		snprintf(msg, sizeof(msg), "NTC_%d", ch);
-		snprintf(msg, sizeof(msg), " --> NTC_Temp: %0.2f", Temp);
->>>>>>> bced26c (Initial version of DESY interlockbox script)
-    if(Temp < 50.){
-      digitalWrite(gpio[1], LOW);
-      digitalWrite(RELAY4, LOW);
-    }
-    else{
-      digitalWrite(gpio[1], HIGH);
-      digitalWrite(RELAY4, HIGH);
-    }
 	}
 
-<<<<<<< HEAD
   if(boolFlow){
     float flow = readFlow(4);
-    snprintf(msg,sizeof(msg),"Current airflow is: %.2f l/s",flow);
-    Serial.println(msg)
+    snprintf(msg,sizeof(msg),"Current airflow is: %.2f l/min",flow);
+    Serial.println(msg);
   }
-
-=======
->>>>>>> bced26c (Initial version of DESY interlockbox script)
+  if(digitalRead(gpio[1])){
+    digitalWrite(gpio[0], HIGH);
+    digitalWrite(RELAY4, LOW);
+  }
+  else{
+    digitalWrite(gpio[0], LOW);
+    digitalWrite(RELAY4, HIGH);
+  }
   // Read GPIO connections
   for(int i = 0; i < nGPIO; i++){
     bool dout = digitalRead(gpio[i]);
@@ -256,7 +241,7 @@ void loop() {
   snprintf(msg,sizeof(msg),"End of loop n.%d",nloop);
   Serial.println(msg);
   nloop++;
-	delay(5000);
+	delay(2000);
 }
 
 bool I2C_SW(byte cn) {
@@ -386,16 +371,14 @@ float readNTC(byte n) {
 	return celsius;
 }
 
-<<<<<<< HEAD
 float readFlow(int n){
   analogReadResolution(12);
-  float Vflow = analogRead(n)*VOLTS; // ADC maximum voltage is 3.3V, flow meter range 0-10V or 1-5V or 4-20mA
+  float Vflow = analogRead(n) * VOLTS; // ADC maximum voltage is 3.3V, flow meter range 0-10V or 1-5V or 4-20mA
+  Serial.println(Vflow);
   float outflow = ( ( Vflow - LOWSIG_FLOW ) / ( HISIG_FLOW - LOWSIG_FLOW ) ) * ( MAX_FLOW - MIN_FLOW ) + MIN_FLOW;
   return outflow;
 }
 
-=======
->>>>>>> bced26c (Initial version of DESY interlockbox script)
 void setupWiFi(){
   Serial.println("Scanning available networks...");
   scanNetworks();
