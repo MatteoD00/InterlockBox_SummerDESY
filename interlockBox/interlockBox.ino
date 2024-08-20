@@ -52,7 +52,6 @@ const int nNTC = 2;
 const int nGPIO = 4;
 const bool boolFlow = true;
 const int pinFlow = 4;
-
 SensirionI2CScd4x scd4x;
 
 const byte channel[CHANNEL_NUM] PROGMEM = { 0b0001, 0b0010, 0b0100, 0b1000 };
@@ -211,7 +210,6 @@ void loop() {
 		snprintf(msg, sizeof(msg), "NTC_%d", ch);
 		snprintf(msg, sizeof(msg), " --> NTC_Temp: %0.2f", Temp);
     */
-
 	}
 
   if(boolFlow){
