@@ -20,14 +20,10 @@
 #define CHANNEL_NUM	4
 
 #define DEFAULT_SHTXX_ADDRS 0x44
-
-<<<<<<< HEAD
 //Flow meter parameters
 #define LOWSIG_FLOW 0.  // or 1 or 4
 #define HISIG_FLOW 3.3 // or 5 or 20
 #define MIN_FLOW 0.
 #define MAX_FLOW 5.
 
-=======
->>>>>>> bced26c (Initial version of DESY interlockbox script)
 #endif

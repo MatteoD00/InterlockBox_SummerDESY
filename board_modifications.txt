@@ -1,0 +1,6 @@
+Changed resistor on Analog Port A_2 (62k --> 200k) to have correct voltage 
+divider for the flowmeter (it shouldn't have effect if we use the port for 
+NTC)
+
+Changed resistor on GPIO4 (2k --> 120Ohms) to increase output current for 
+the optocoupler of the HV interlock ==> FIXED GPIO4 as HV_INTERLOCK

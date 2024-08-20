@@ -139,13 +139,13 @@ void set_CO2() {
 }
 
 void setDigitalPins(){ // Set the default function (I/O) for the digital pins
-  pinMode(gpio[0], OUTPUT); // GPIO_1
+  pinMode(gpio[0], INPUT); // GPIO_1
   pinMode(gpio[1], INPUT); // GPIO_2
   pinMode(gpio[2], INPUT); // GPIO_3
-  pinMode(gpio[3], INPUT); // GPIO_4
+  pinMode(gpio[3], OUTPUT); // GPIO_4 used for HV interlock (modified on-board resistor to match optocoupler current)
   pinMode(RELAY4, OUTPUT);
 
-  digitalWrite(gpio[0], HIGH); // GPIO_2
+  digitalWrite(gpio[3], HIGH); // GPIO_2
   digitalWrite(RELAY4, LOW);
 }
 
@@ -217,14 +217,16 @@ void loop() {
     snprintf(msg,sizeof(msg),"Current airflow is: %.2f l/min",flow);
     Serial.println(msg);
   }
+
   if(digitalRead(gpio[1])){
-    digitalWrite(gpio[0], HIGH);
+    digitalWrite(gpio[3], HIGH);
     digitalWrite(RELAY4, LOW);
   }
   else{
-    digitalWrite(gpio[0], LOW);
+    digitalWrite(gpio[3], LOW);
     digitalWrite(RELAY4, HIGH);
   }
+
   // Read GPIO connections
   for(int i = 0; i < nGPIO; i++){
     bool dout = digitalRead(gpio[i]);
