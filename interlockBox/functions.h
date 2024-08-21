@@ -38,5 +38,6 @@ float readFlow(int n);
 void setupWiFi(const char* ssid, int status, byte* mac);
 void scanNetworks();
 void printWiFiData();
+void sendDataDB(float* Temp, float* RH, float* DewPoint, const int nHYT, const int nNTC, float flow);
 
 #endif
