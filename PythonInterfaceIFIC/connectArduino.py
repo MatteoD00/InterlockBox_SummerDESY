@@ -41,7 +41,7 @@ class Arduino:
   
  
  def connect(self):
-     self.arduino = serial.Serial("/dev/serial/by-id/usb-Arduino_LLC_Arduino_MKR1000_F38DF97F504E4B53382E3120FF0F1330-if00",9800)
+     self.arduino = serial.Serial("/dev/cu.usbmodem14201",115200)
      self.stop=False
      self.running=True
   

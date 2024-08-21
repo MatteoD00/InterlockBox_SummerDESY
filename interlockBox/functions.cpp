@@ -241,7 +241,7 @@ void setupWiFi(const char* ssid, int status, byte* mac){
     status = WiFi.begin(ssid);
     //status = WiFi.begin(ssid, pass) //suitable for WPA network
     // wait 10 seconds for connection:
-    delay(10000+1000*loop);
+    delay(10000);
     loop++;
   }
 
@@ -302,4 +302,29 @@ void printWiFiData() {
   Serial.print("signal strength (RSSI):");
   Serial.println(rssi);
 
+}
+
+void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int nNTC, float flow){
+  Serial.println("###### Sending data for InfluxDB ######");
+  Serial.print("Temp: ");
+  for(int i = 0; i < nHYT + nNTC; i++){
+    Serial.print(Temp[i]);
+    Serial.print("; ");
+  }
+  Serial.print("\n");
+  Serial.print("RH: ");
+  for(int i = 0; i < nHYT; i++){
+    Serial.print(RH[i]);
+    Serial.print("; ");
+  }
+  Serial.print("\n");
+  Serial.print("DewPoint: ");
+  for(int i = 0; i < nHYT; i++){
+    Serial.print(DewPoint[i]);
+    Serial.print("; ");
+  }
+  Serial.print("\n");
+  Serial.print("Flow: ");
+  Serial.println(flow);
+  Serial.println("****** End of sending data ******");
 }

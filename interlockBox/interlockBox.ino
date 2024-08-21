@@ -41,6 +41,7 @@ int nloop;
 const char ssid[] = SECRET_SSID;
 const char user[] = SECRET_USER;
 const char pass[] = SECRET_PASS;
+const char ip[] = SECRET_IP;
 int status = WL_IDLE_STATUS; 
 byte mac[6];
 //define number of sensors connected
@@ -78,21 +79,21 @@ void loop() {
 	// Switching on Digital sensors
 	digitalWrite(SENS_PW, LOW);
 	delay(100);
-	float Temp = NAN;
-	float RH = NAN;
-	float DewPoint = NAN;
+	float Temp[nHYT + nNTC];
+	float RH[nHYT];
+	float DewPoint[nHYT];
   bool intlkHYT = false;
   for (int ch = 0; ch < nHYT; ch++) {   // "<= CHANNEL_NUM" default end condition
     //Change channel
     I2C_SW(ch);
     // read_CO2();
     // HYT939
-    readHYT939(&Temp, &RH, &DewPoint);
+    readHYT939(&Temp[ch], &RH[ch], &DewPoint[ch]);
     snprintf(msg, sizeof(msg), "Sensor_%u_HYT939 ", ch);
     Serial.print(msg);
     snprintf(msg, sizeof(msg), " --> Temp: %0.2f; RH: %0.2f; DP: %0.2f", Temp, RH, DewPoint);
     Serial.println(msg);
-    if(Temp>25. || RH>50. || DewPoint>Temp){
+    if(Temp[ch]>25. || RH[ch]>50. || DewPoint[ch]>Temp[ch]){
       intlkHYT = true;
       // issueHYT() --> implementing function for issue related to HYT monitoring
     }
@@ -109,19 +110,20 @@ void loop() {
   }
   bool intlkNTC = false;
 	for (int ch = 0; ch < nNTC; ch++) {
-    Temp = readNTC(ch);
+    Temp[nHYT + ch] = readNTC(ch);
     /*
 		snprintf(msg, sizeof(msg), "NTC_%d", ch);
 		snprintf(msg, sizeof(msg), " --> NTC_Temp: %0.2f", Temp);
     */
-    if(Temp>17.){
+    if(Temp[nHYT + ch]>17.){
       intlkNTC = true;
       // issueNTC() --> implement function for issues on petal temperature
     }
 	}
   bool intlkFlow = false;
+  int flow = 0;
   if(boolFlow){
-    float flow = readFlow(4);
+    flow = readFlow(4);
     snprintf(msg,sizeof(msg),"Current airflow is: %.2f l/min",flow);
     Serial.println(msg);
     if(flow<1.){
@@ -152,6 +154,8 @@ void loop() {
 
   // Switching off Digital sensors
   digitalWrite(SENS_PW, HIGH);
+
+  sendDataDB(Temp, RH, DewPoint, nHYT, nNTC, flow);
   
   snprintf(msg,sizeof(msg),"End of loop n.%d",nloop);
   Serial.println(msg);
