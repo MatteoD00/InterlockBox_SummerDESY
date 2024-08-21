@@ -16,10 +16,11 @@
 #define VOLTS	(ADCvolts/ADCsteps)
 
 // I2C switch address
-#define SW_ADDRS 		0x70	//0x70 to 0x77 depending on address pins
+#define SW_ADDRS 0x70   //0x70 to 0x77 depending on address pins
 #define CHANNEL_NUM	4
 
 #define DEFAULT_SHTXX_ADDRS 0x44
+
 //Flow meter parameters
 #define LOWSIG_FLOW 0.  // or 1 or 4
 #define HISIG_FLOW 3.3 // or 5 or 20
