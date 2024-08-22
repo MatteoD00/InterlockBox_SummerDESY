@@ -84,10 +84,10 @@ void setDigitalPins(int* gpio){ // Set the default function (I/O) for the digita
   pinMode(gpio[0], INPUT); // GPIO_1
   pinMode(gpio[1], INPUT); // GPIO_2
   pinMode(gpio[2], INPUT); // GPIO_3
-  pinMode(gpio[3], OUTPUT); // GPIO_4 used for HV interlock (modified on-board resistor to match optocoupler current)
+  pinMode(HV_INTLK, OUTPUT); // GPIO_4 used for HV interlock (modified on-board resistor to match optocoupler current)
   pinMode(RELAY4, OUTPUT);
 
-  digitalWrite(gpio[3], HIGH); // GPIO_2
+  digitalWrite(HV_INTLK, HIGH); // GPIO_2
   digitalWrite(RELAY4, LOW);
 }
 
@@ -160,7 +160,7 @@ void readHYT939(float *Temp, float *RH, float *DewPoint) {
 	}
 }
 
-float readNTC(byte n) {
+float readNTC(byte n, bool testmode = false) {
 	analogReadResolution(12);
 	int Rc = 15e3; //valor de la resistencia
 	int Rd1 = 62e3; // Resistor divider 1
@@ -201,21 +201,24 @@ float readNTC(byte n) {
 	float R100k = 100e3;
 	float Rparallel = (Rc * V) / (Vcc - V);
 	float R = (R100k * Rparallel) / (R100k - Rparallel);
-	Serial.print("Measured Parallel resistor: ");
-	Serial.print(Rparallel);
-	Serial.print(" --> Calculated NTC: ");
-	Serial.print(R);
-
+	if(testmode){
+    Serial.print("Measured Parallel resistor: ");
+    Serial.print(Rparallel);
+    Serial.print(" --> Calculated NTC: ");
+    Serial.print(R);
+  }
 	float logR = log(R);
 	float R_th = 1.0 / (A + B * logR + C * logR * logR * logR);
 
   //	float kelvin = R_th - V * V / (K * R) * 1000;
 	float kelvin = R_th;
 	float celsius = kelvin - 273.15;
-	Serial.print("  --> ");
-	Serial.print(celsius);
-	Serial.println("°C");
-	return celsius;
+  if(testmode){
+    Serial.print("  --> ");
+    Serial.print(celsius);
+    Serial.println("°C");
+    return celsius;
+  }
 }
 
 float readFlow(int n){
@@ -225,48 +228,55 @@ float readFlow(int n){
   return outflow;
 }
 
-void setupWiFi(const char* ssid, int status, byte* mac){
-  Serial.println("Scanning available networks...");
-  scanNetworks();
+void setupWiFi(const char* ssid, int status, byte* mac, bool testmode = false){
+  if(testmode){
+    Serial.println("Scanning available networks...");
+    scanNetworks();
+  }
   int loop = 0;
   while (status != WL_CONNECTED) {
     if(loop>4){
-      Serial.print("Connection to ");
-      Serial.print(ssid);
-      Serial.println(" failed");
+      if(testmode){
+        Serial.print("Connection to ");
+        Serial.print(ssid);
+        Serial.println(" failed");
+      }
       break;
     }
-    Serial.print("Attempting to connect to network: ");
-    Serial.println(ssid);
+    if(testmode){
+      Serial.print("Attempting to connect to network: ");
+      Serial.println(ssid);
+    }
     status = WiFi.begin(ssid);
     //status = WiFi.begin(ssid, pass) //suitable for WPA network
     // wait 10 seconds for connection:
-    delay(10000);
+    delay(5000);
     loop++;
   }
 
   //printing MAC address
   WiFi.macAddress(mac);
-  Serial.print("MAC address: ");
-  Serial.print(mac[5],HEX);
-  Serial.print(":");
-  Serial.print(mac[4],HEX);
-  Serial.print(":");
-  Serial.print(mac[3],HEX);
-  Serial.print(":");
-  Serial.print(mac[2],HEX);
-  Serial.print(":");
-  Serial.print(mac[1],HEX);
-  Serial.print(":");
-  Serial.println(mac[0],HEX);
+  if(testmode){
+    Serial.print("MAC address: ");
+    Serial.print(mac[5],HEX);
+    Serial.print(":");
+    Serial.print(mac[4],HEX);
+    Serial.print(":");
+    Serial.print(mac[3],HEX);
+    Serial.print(":");
+    Serial.print(mac[2],HEX);
+    Serial.print(":");
+    Serial.print(mac[1],HEX);
+    Serial.print(":");
+    Serial.println(mac[0],HEX);
+  
+    // you're connected now, so print out the data:
+    Serial.println("You're connected to the network");
 
-  // you're connected now, so print out the data:
-  Serial.println("You're connected to the network");
-
-  Serial.println("----------------------------------------");
-  printWiFiData();
-  Serial.println("----------------------------------------");
-
+    Serial.println("----------------------------------------");
+    printWiFiData();
+    Serial.println("----------------------------------------");
+  }
 }
 
 void scanNetworks() {
