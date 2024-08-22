@@ -50,19 +50,25 @@ const int nNTC = 2;
 const int nGPIO = 4;
 const bool boolFlow = true;
 const int pinFlow = 4;
+float Temp[nHYT + nNTC] = { NAN };
+float RH[nHYT] = { NAN };
+float DewPoint[nHYT] = { NAN };
+int flow = 0;
 
 int gpio[] = GPIO_PINS;
 SensirionI2CScd4x scd4x;
 Adafruit_SHT31 SHTxx;
+
+const bool testmode = false;
 
 void setup() {
 	Serial.begin(115200);
 	while (!Serial) {
 		delay(100);
   }
-  Serial.println("\n\nRestart Arduino");
+  if(testmode) Serial.println("\n\nRestart Arduino");
   setDigitalPins(gpio);
-  setupWiFi(ssid, status, mac);
+  setupWiFi(ssid, status, mac, testmode);
 
   nloop = 0;
 	pinMode(SENS_PW, OUTPUT);
@@ -74,14 +80,13 @@ void setup() {
 
 void loop() {
   char msg[128] = { NULL };
-  snprintf(msg, sizeof(msg),"\nStart of loop n.%d",nloop);
-  Serial.println(msg);
+  if(testmode){
+    snprintf(msg, sizeof(msg),"\nStart of loop n.%d",nloop);
+    Serial.println(msg);
+  }
 	// Switching on Digital sensors
 	digitalWrite(SENS_PW, LOW);
 	delay(100);
-	float Temp[nHYT + nNTC];
-	float RH[nHYT];
-	float DewPoint[nHYT];
   bool intlkHYT = false;
   for (int ch = 0; ch < nHYT; ch++) {   // "<= CHANNEL_NUM" default end condition
     //Change channel
@@ -89,10 +94,12 @@ void loop() {
     // read_CO2();
     // HYT939
     readHYT939(&Temp[ch], &RH[ch], &DewPoint[ch]);
-    snprintf(msg, sizeof(msg), "Sensor_%u_HYT939 ", ch);
-    Serial.print(msg);
-    snprintf(msg, sizeof(msg), " --> Temp: %0.2f; RH: %0.2f; DP: %0.2f", Temp, RH, DewPoint);
-    Serial.println(msg);
+    if(testmode){
+      snprintf(msg, sizeof(msg), "Sensor_%u_HYT939 ", ch);
+      Serial.print(msg);
+      snprintf(msg, sizeof(msg), " --> Temp: %0.2f; RH: %0.2f; DP: %0.2f", Temp, RH, DewPoint);
+      Serial.println(msg);
+    }
     if(Temp[ch]>25. || RH[ch]>50. || DewPoint[ch]>Temp[ch]){
       intlkHYT = true;
       // issueHYT() --> implementing function for issue related to HYT monitoring
@@ -102,15 +109,17 @@ void loop() {
     // SHT35 (not used @DESY at the moment)
     Temp = SHTxx.readTemperature();
     RH = SHTxx.readHumidity();
-    snprintf(msg, sizeof(msg), "Sensor_%u_SHT35", ch);
-    Serial.print(msg);
-    snprintf(msg, sizeof(msg), " --> Temp: %0.2f; RH: %0.2f; DP: %0.2f", Temp, RH, DewPoint);
-    Serial.println(msg);
+    if(testmode){
+      snprintf(msg, sizeof(msg), "Sensor_%u_SHT35", ch);
+      Serial.print(msg);
+      snprintf(msg, sizeof(msg), " --> Temp: %0.2f; RH: %0.2f; DP: %0.2f", Temp, RH, DewPoint);
+      Serial.println(msg);
+    }
   */
   }
   bool intlkNTC = false;
 	for (int ch = 0; ch < nNTC; ch++) {
-    Temp[nHYT + ch] = readNTC(ch);
+    Temp[nHYT + ch] = readNTC(ch, testmode);
     /*
 		snprintf(msg, sizeof(msg), "NTC_%d", ch);
 		snprintf(msg, sizeof(msg), " --> NTC_Temp: %0.2f", Temp);
@@ -121,45 +130,83 @@ void loop() {
     }
 	}
   bool intlkFlow = false;
-  int flow = 0;
   if(boolFlow){
     flow = readFlow(4);
-    snprintf(msg,sizeof(msg),"Current airflow is: %.2f l/min",flow);
-    Serial.println(msg);
+    if(testmode){
+      snprintf(msg,sizeof(msg),"Current airflow is: %.2f l/min",flow);
+      Serial.println(msg);
+    }
     if(flow<1.){
       intlkFlow = true;
       //issueFlow() --> implement function if airflow too low
     }
   }
-  bool intlkHV = digitalRead(gpio[1]);
+  bool activateHV = digitalRead(gpio[1]);
   // if may contain a function for HV related issues
-  if(intlkHV){
-    digitalWrite(gpio[3], HIGH);
+  if(activateHV){
+    digitalWrite(HV_INTLK, HIGH);
     digitalWrite(RELAY4, LOW);
   }
   else{
-    digitalWrite(gpio[3], LOW);
+    digitalWrite(HV_INTLK, LOW);
     digitalWrite(RELAY4, HIGH);
   }
   
-  // Read GPIO connections
-  for(int i = 0; i < nGPIO; i++){
-    bool dout = digitalRead(gpio[i]);
-    snprintf(msg, sizeof(msg), "GPIO_%d state: %s", i+1, dout ? "true" : "false");
+  if(testmode){
+    // Print GPIO and RELAY connections
+    for(int i = 0; i < nGPIO; i++){
+      bool dout = digitalRead(gpio[i]);
+      snprintf(msg, sizeof(msg), "GPIO_%d state: %s", i+1, dout ? "true" : "false");
+      Serial.println(msg);
+    }
+    bool dout = digitalRead(RELAY4);
+    snprintf(msg, sizeof(msg), "Relay_4 state: %s", dout ? "Closed" : "Open");
+    Serial.println(msg);
+    snprintf(msg,sizeof(msg),"End of loop n.%d",nloop);
     Serial.println(msg);
   }
-  bool dout = digitalRead(RELAY4);
-  snprintf(msg, sizeof(msg), "Relay_4 state: %s", dout ? "Closed" : "Open");
-  Serial.println(msg);
-
   // Switching off Digital sensors
   digitalWrite(SENS_PW, HIGH);
 
   sendDataDB(Temp, RH, DewPoint, nHYT, nNTC, flow);
-  
-  snprintf(msg,sizeof(msg),"End of loop n.%d",nloop);
-  Serial.println(msg);
-  
+
   nloop++;
 	delay(2000);
+  // check for incoming instructions from the PC
+  String command;
+  while(Serial.available()>0){
+    command = Serial.readString();
+    command.trim();
+  }
+  // implement interlock signals given to Arduino by PC
 }
+
+
+
+
+
+
+/* //New version of loop() implementing part of IFIC flowchart
+void loop(){
+  while(!checkDoor()){
+    Serial.println("Lock the door to start testing");
+    doorIntlk();
+    delay(5000);
+  }
+  Serial.println("Door locked. Check for DewPoint condition");
+  while(!checkDP()){
+    Serial.println("Wait for DewPoint condition");
+    dewIntlk();
+    delay(2000);
+  }
+  Serial.println("Check temperature condition");
+  while(!checkTemp(17)){
+    Serial.println("Wait for temperature cooldown");
+    tempIntlk();
+    delay(1000);
+  }
+  // enable LV (how??)
+  // enable HV via GPIO
+
+}
+*/
