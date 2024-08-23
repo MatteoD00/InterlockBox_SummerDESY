@@ -160,7 +160,7 @@ void readHYT939(float *Temp, float *RH, float *DewPoint) {
 	}
 }
 
-float readNTC(byte n, bool testmode = false) {
+float readNTC(byte n, bool testoutput = false) {
 	analogReadResolution(12);
 	int Rc = 15e3; //valor de la resistencia
 	int Rd1 = 62e3; // Resistor divider 1
@@ -201,7 +201,7 @@ float readNTC(byte n, bool testmode = false) {
 	float R100k = 100e3;
 	float Rparallel = (Rc * V) / (Vcc - V);
 	float R = (R100k * Rparallel) / (R100k - Rparallel);
-	if(testmode){
+	if(testoutput){
     Serial.print("Measured Parallel resistor: ");
     Serial.print(Rparallel);
     Serial.print(" --> Calculated NTC: ");
@@ -213,7 +213,7 @@ float readNTC(byte n, bool testmode = false) {
   //	float kelvin = R_th - V * V / (K * R) * 1000;
 	float kelvin = R_th;
 	float celsius = kelvin - 273.15;
-  if(testmode){
+  if(testoutput){
     Serial.print("  --> ");
     Serial.print(celsius);
     Serial.println("°C");
@@ -228,22 +228,22 @@ float readFlow(int n){
   return outflow;
 }
 
-void setupWiFi(const char* ssid, int status, byte* mac, bool testmode = false){
-  if(testmode){
+void setupWiFi(const char* ssid, int status, byte* mac, bool testoutput = false){
+  if(testoutput){
     Serial.println("Scanning available networks...");
     scanNetworks();
   }
   int loop = 0;
   while (status != WL_CONNECTED) {
     if(loop>4){
-      if(testmode){
+      if(testoutput){
         Serial.print("Connection to ");
         Serial.print(ssid);
         Serial.println(" failed");
       }
       break;
     }
-    if(testmode){
+    if(testoutput){
       Serial.print("Attempting to connect to network: ");
       Serial.println(ssid);
     }
@@ -256,7 +256,7 @@ void setupWiFi(const char* ssid, int status, byte* mac, bool testmode = false){
 
   //printing MAC address
   WiFi.macAddress(mac);
-  if(testmode){
+  if(testoutput){
     Serial.print("MAC address: ");
     Serial.print(mac[5],HEX);
     Serial.print(":");
@@ -314,27 +314,48 @@ void printWiFiData() {
 
 }
 
-void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int nNTC, float flow){
-  Serial.println("###### Sending data for InfluxDB ######");
-  Serial.print("Temp: ");
+void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int nNTC, float flow, bool hv_intlk = false){
+  Serial.println("###### Sending data to PC ######");
+  char msgDB[128];
+  snprintf(msgDB,sizeof(msgDB),"nHYT:  %d     nNTC:  %d",nHYT,nNTC);
+  Serial.println(msgDB);
+  Serial.print("Temp:  ");
   for(int i = 0; i < nHYT + nNTC; i++){
     Serial.print(Temp[i]);
-    Serial.print("; ");
+    Serial.print("  ");
   }
   Serial.print("\n");
-  Serial.print("RH: ");
+  Serial.print("RH:  ");
   for(int i = 0; i < nHYT; i++){
     Serial.print(RH[i]);
-    Serial.print("; ");
+    Serial.print("  ");
   }
   Serial.print("\n");
-  Serial.print("DewPoint: ");
+  Serial.print("DewPoint:  ");
   for(int i = 0; i < nHYT; i++){
     Serial.print(DewPoint[i]);
-    Serial.print("; ");
+    Serial.print("  ");
   }
   Serial.print("\n");
-  Serial.print("Flow: ");
+  Serial.print("Flow:  ");
   Serial.println(flow);
+  Serial.print("HV_Intlk:  ");
+  Serial.println(hv_intlk);
   Serial.println("****** End of sending data ******");
+}
+
+bool condition_door(int* gpio, const int nHYT, const int nNTC, float* temp, float* rh, float* dew, bool testmode){
+  bool opendoor = true;
+  //Check cooling off by looking to NTC temperature
+  for(int i = 0; i < nNTC; i++){
+    if(temp[nHYT + i] < 17) opendoor = false;
+  }
+  //Check DewPoint lower than room temperature (around 20C)
+  for(int i = 0; i < nHYT; i++){
+    if(!(1.2 * dew[nHYT] < 20.)) opendoor = false;
+  }
+  //Check if HV_Signal is ON (still to decide correct pin)
+  bool hvsig = digitalRead(gpio[0]);
+  opendoor = opendoor && hvsig;
+  return opendoor;
 }

@@ -10,6 +10,8 @@
 #define ANALOG_PINS { 2, 3, 4 }
 #define GPIO_PINS { 5, 4, 3, 2}
 #define HV_INTLK 2
+#define HV_SIGNAL 3
+#define DOOR_IN 4
 #define AnalogResolution 12  //10 bits
 #define ADCvolts 3.3
 #define ADCsteps 4095 // 12 bits

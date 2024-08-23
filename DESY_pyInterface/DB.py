@@ -15,7 +15,7 @@ class DB:
  fill the data and check where do you want to upload your data
  """
     
- ip=""
+ ip="https://atlasmonitoring.desy.de"
  port=8086
  org=""
  username=""

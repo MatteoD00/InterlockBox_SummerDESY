@@ -33,11 +33,12 @@ void set_CO2(SensirionI2CScd4x scd4x);
 void setDigitalPins(int* gpio);
 bool I2C_SW(byte cn);
 void readHYT939(float *Temp, float *RH, float *DewPoint);
-float readNTC(byte n, bool testmode);
+float readNTC(byte n, bool testoutput);
 float readFlow(int n);
-void setupWiFi(const char* ssid, int status, byte* mac, bool testmode);
+void setupWiFi(const char* ssid, int status, byte* mac, bool testoutput);
 void scanNetworks();
 void printWiFiData();
-void sendDataDB(float* Temp, float* RH, float* DewPoint, const int nHYT, const int nNTC, float flow);
+void sendDataDB(float* Temp, float* RH, float* DewPoint, const int nHYT, const int nNTC, float flow, bool hv_intlk);
+bool condition_door(int* gpio, const int nHYT, const int nNTC, float* temp, float* rh, float* dew, bool testmode = false);
 
 #endif
