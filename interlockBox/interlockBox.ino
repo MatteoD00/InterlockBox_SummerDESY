@@ -84,7 +84,7 @@ void loop() {
   int co2status = 1;
   // check for incoming instructions from the PC
   String command;
-  while(Serial.available()>0){
+  if(Serial.available()>0){
     command = Serial.readString();
     command.trim();
     if(!command.endsWith("RUN")){
@@ -191,6 +191,6 @@ void loop() {
   bool hv_intlk = !digitalRead(HV_INTLK);
   sendDataDB(Temp, RH, DewPoint, nHYT, nNTC, flow, hv_intlk);
 
-  nloop++;
-	delay(2000);
+  //nloop++;
+	//delay(2000);
 }

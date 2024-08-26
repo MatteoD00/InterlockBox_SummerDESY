@@ -249,7 +249,7 @@ void setupWiFi(const char* ssid, int status, byte* mac, bool testoutput = false)
     }
     status = WiFi.begin(ssid);
     //status = WiFi.begin(ssid, pass) //suitable for WPA network
-    // wait 10 seconds for connection:
+    // wait 5 seconds for connection:
     delay(5000);
     loop++;
   }
