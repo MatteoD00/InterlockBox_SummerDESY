@@ -12,14 +12,17 @@ import random
 def send2DB(sensors, values, ts):
         try:
             time.sleep(0.70)
-            post_params = ( ('db', 'testInflux'), )
+            post_params = ( ('db', 'test_PetalColdbox'), )
             for i in range(len(sensors)):
                 data_sent = sensors[i]+' value='+str(format(values[i], '.2f'))+' '+str(ts)
-                #print(data_sent)
-                response_db = requests.post('https://influx-prod-24-prod-eu-west-2.grafana.net', params=post_params, data=data_sent)
-                #print(response_db)
+                print(data_sent)
+                response_db = requests.post('http://atlasmonitoring.desy.de:8086'+'/write', params=post_params, data=data_sent)
+                print(response_db)
+            return True
         except:
             print("Error while connecting to Grafana")
+            return False
+
 
 # reading and formatting lists of data
 def readData(arduino):
@@ -35,19 +38,19 @@ def readData(arduino):
     hv_intlk = arduino.readline().decode().split()
     sensname = ("").split()
     for i in range(nHYT):
-        valsens.append(temp[i + 1])
-        valsens.append(hum[i + 1])
-        valsens.append(dew[i + 1])
+        valsens.append(float(temp[i + 1]))
+        valsens.append(float(hum[i + 1]))
+        valsens.append(float(dew[i + 1]))
         sensname.append(f'tempHYT{i}')
         sensname.append(f'humHYT{i}')
         sensname.append(f'dewHYT{i}')
     for i in range(nNTC):
-        valsens.append(temp[i + nHYT + 1])
+        valsens.append(float(temp[i + nHYT + 1]))
         sensname.append(f'NTC{i}')
     sensname.append("flowmeter")
-    valsens.append(valflow[1])
+    valsens.append(float(valflow[1]))
     sensname.append('hv_intlk')
-    valsens.append(hv_intlk[1])
+    valsens.append(int(hv_intlk[1]))
     return sensname, valsens
 
 
@@ -56,14 +59,20 @@ def mainLoop(arduino, testmode):
     stringOut = arduino.readline().decode()
     if "Sending data to PC" in stringOut:
         sensOut, valOut = readData(arduino)
-        ts = time.time()
-        send2DB(sensOut, valOut, ts)
+        ts = int(time.time())*1000000000
+        successDB = send2DB(sensOut, valOut, ts)
         if testmode:
-            print(sensOut,valOut,ts,sep="   ;   ")
+            print(sensOut,valOut,ts,sep="  ;   ")
             sizesens = len(sensOut)
             sizeval = len(valOut)
             print(f'N of sensors: {sizesens}        N of values: {sizeval}\n')
-    #Randomize CO2 state simulating an accidental failure for cooling
+        """if not successDB:
+            try:
+                send2DB(["testSignal1"],[0],int(time.time())*1000000000)
+                print('2nd atttemp')
+            except:
+                print('2nd attempt not working')"""
+    #Randomize CO2 state simulating an accidental failure for cooling --> Probably still to improve this part
     if random.randrange(100) < 90 :
         co2status = "CO2_RUN"
         delay=0.
@@ -84,7 +93,8 @@ def mainLoop(arduino, testmode):
 if __name__ == "__main__":
     shutdown = False
     testmode = True
-    arduino = serial.Serial('/dev/cu.usbmodem14201', 115200, timeout=0.3) 
+    arduino = serial.Serial('/dev/cu.usbmodem14201', 115200, timeout=5)
+    time.sleep(5)
     while not shutdown:
-        shutdown = mainLoop( arduino, testmode)
-        time.sleep(2.) #added to match arduino delay
+        shutdown = mainLoop(arduino, testmode)
+        time.sleep(1.) #added to match arduino delay

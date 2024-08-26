@@ -190,7 +190,4 @@ void loop() {
   digitalWrite(SENS_PW, HIGH);
   bool hv_intlk = !digitalRead(HV_INTLK);
   sendDataDB(Temp, RH, DewPoint, nHYT, nNTC, flow, hv_intlk);
-
-  //nloop++;
-	//delay(2000);
 }
