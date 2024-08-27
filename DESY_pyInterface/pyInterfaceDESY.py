@@ -93,8 +93,8 @@ def mainLoop(arduino, testmode):
 if __name__ == "__main__":
     shutdown = False
     testmode = True
-    arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=2)
+    arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=3)
     time.sleep(5)
     while not shutdown:
         shutdown = mainLoop(arduino, testmode)
-        time.sleep(1.) #added to match arduino delay
+        #time.sleep(1.) #added to match arduino delay
