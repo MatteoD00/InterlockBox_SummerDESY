@@ -31,7 +31,7 @@ void printSerialNumber(uint16_t serial0, uint16_t serial1, uint16_t serial2);
 bool read_CO2(SensirionI2CScd4x scd4x);
 void set_CO2(SensirionI2CScd4x scd4x);
 void setDigitalPins(int* gpio);
-bool I2C_SW(byte cn);
+bool I2C_SW(byte cn,bool testoutput);
 void readHYT939(float *Temp, float *RH, float *DewPoint);
 float readNTC(byte n, bool testoutput);
 float readFlow(int n);

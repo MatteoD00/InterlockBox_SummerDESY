@@ -105,7 +105,7 @@ void loop() {
   bool intlkHYT = false;
   for (int ch = 0; ch < nHYT; ch++) {   // "<= CHANNEL_NUM" default end condition
     //Change channel
-    I2C_SW(ch);
+    I2C_SW(ch,testoutput);
     // read_CO2();
     // HYT939
     readHYT939(&Temp[ch], &RH[ch], &DewPoint[ch]);

@@ -93,7 +93,7 @@ def mainLoop(arduino, testmode):
 if __name__ == "__main__":
     shutdown = False
     testmode = True
-    arduino = serial.Serial('/dev/cu.usbmodem14201', 115200, timeout=5)
+    arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=2)
     time.sleep(5)
     while not shutdown:
         shutdown = mainLoop(arduino, testmode)

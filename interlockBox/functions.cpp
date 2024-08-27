@@ -91,7 +91,7 @@ void setDigitalPins(int* gpio){ // Set the default function (I/O) for the digita
   digitalWrite(RELAY4, LOW);
 }
 
-bool I2C_SW(byte cn) {
+bool I2C_SW(byte cn, bool testoutput) {
 	char msg[128] = { '\0' };
 	uint8_t nErrors = 0;
 	byte addr = 250;
@@ -109,14 +109,16 @@ bool I2C_SW(byte cn) {
 		addr = Wire.read();
 		error = error + Wire.endTransmission();
 		error = error + addr;
-		if (error != channel[cn]) {
-			snprintf(msg, sizeof(msg), "\tError switching I2C: %X (%X)", cn,
-					error);
-		} else {
-			Serial.print("\tSwitched I2C to channel: ");
-			Serial.println(cn);
-			return true;
-		}
+		if(testoutput){
+      if (error != channel[cn]) {
+        snprintf(msg, sizeof(msg), "\tError switching I2C: %X (%X)", cn,
+            error);
+      } else {
+        Serial.print("\tSwitched I2C to channel: ");
+        Serial.println(cn);
+        return true;
+      }
+    }
 	}
 	return false;
 }
@@ -315,6 +317,7 @@ void printWiFiData() {
 }
 
 void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int nNTC, float flow, bool hv_intlk = false){
+  Serial.flush();
   Serial.println("###### Sending data to PC ######");
   char msgDB[128];
   snprintf(msgDB,sizeof(msgDB),"nHYT:  %d     nNTC:  %d",nHYT,nNTC);
@@ -324,24 +327,24 @@ void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int
     Serial.print(Temp[i]);
     Serial.print("  ");
   }
-  Serial.print("\n");
+  Serial.println();
   Serial.print("RH:  ");
   for(int i = 0; i < nHYT; i++){
     Serial.print(RH[i]);
     Serial.print("  ");
   }
-  Serial.print("\n");
+  Serial.println();
   Serial.print("DewPoint:  ");
   for(int i = 0; i < nHYT; i++){
     Serial.print(DewPoint[i]);
     Serial.print("  ");
   }
-  Serial.print("\n");
+  Serial.println();
   Serial.print("Flow:  ");
   Serial.println(flow);
   Serial.print("HV_Intlk:  ");
   Serial.println(hv_intlk);
-  Serial.println("****** End of sending data ******");
+  //Serial.println("****** End of sending data ******");
 }
 
 bool condition_door(int* gpio, const int nHYT, const int nNTC, float* temp, float* rh, float* dew, bool testmode){
