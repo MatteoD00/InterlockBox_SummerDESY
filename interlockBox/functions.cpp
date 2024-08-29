@@ -219,8 +219,8 @@ float readNTC(byte n, bool testoutput = false) {
     Serial.print("  --> ");
     Serial.print(celsius);
     Serial.println("°C");
-    return celsius;
   }
+  return celsius;
 }
 
 float readFlow(int n){
