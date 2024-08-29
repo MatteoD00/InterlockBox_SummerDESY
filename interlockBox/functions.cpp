@@ -153,8 +153,10 @@ void readHYT939(float *Temp, float *RH, float *DewPoint) {
 		float b = 17.368;
 		float c = 238.88;
 		float d = 234.5;
-		float GammaM = log(*RH / 100 * exp((b - *Temp / d) * (*Temp / (c + *Temp))));
-		*DewPoint = (c * GammaM) / (b - GammaM);
+    float GammaM = 0.;
+    if(*RH>=0.01) GammaM = log(*RH / 100 * exp((b - *Temp / d) * (*Temp / (c + *Temp))));
+    else  GammaM = log(0.01 / 100 * exp((b - *Temp / d) * (*Temp / (c + *Temp))));
+    *DewPoint = (c * GammaM) / (b - GammaM);
 	} else {
 		*RH = NAN;
 		*Temp = NAN;
