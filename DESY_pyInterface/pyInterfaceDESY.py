@@ -57,7 +57,7 @@ def readData(arduino):
     return sensname, valsens
 
 
-def mainLoop(arduino, testmode):
+def mainLoop(arduino, testmode, testCO2):
     shutdown = False 
     stringOut = arduino.readline().decode()
     if "Sending data to PC" in stringOut:
@@ -76,15 +76,14 @@ def mainLoop(arduino, testmode):
             except:
                 print('2nd attempt not working')"""
     #Randomize CO2 state simulating an accidental failure for cooling --> Probably still to improve this part
-    if random.randrange(100) < 90 :
-        co2status = "CO2_RUN"
-        delay=0.
-    elif random.randrange(100) < 80:
-        co2status = "CO2_FAIL"
-        delay=2.
-    else:
-        co2status = "CO2_ERROR"
-        delay=2.
+    co2status = "CO2_RUN"
+    delay=0.
+    if testCO2 :
+        if random.randrange(100) < 10 :
+            co2status = "CO2_FAIL"
+            if random.randrange(100) < 10 :
+                co2status = "CO2_ERROR"
+            delay=2.
     if testmode:
         print(f"CO2_state: {co2status}\n")
     arduino.write(co2status.encode())
@@ -96,8 +95,9 @@ def mainLoop(arduino, testmode):
 if __name__ == "__main__":
     shutdown = False
     testmode = True
+    testCO2 = True
     arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=3)
     time.sleep(5)
     while not shutdown:
-        shutdown = mainLoop(arduino, testmode)
+        shutdown = mainLoop(arduino, testmode, testCO2)
         #time.sleep(1.) #added to match arduino delay
