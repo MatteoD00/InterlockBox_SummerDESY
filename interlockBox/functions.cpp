@@ -318,7 +318,7 @@ void printWiFiData() {
 
 }
 
-void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int nNTC, float flow, bool hv_intlk = false){
+void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int nNTC, float flow, bool hv_intlk = false, bool hv_signal = false){
   Serial.flush();
   Serial.println("###### Sending data to PC ######");
   char msgDB[128];
@@ -346,6 +346,8 @@ void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int
   Serial.println(flow);
   Serial.print("HV_Intlk:  ");
   Serial.println(hv_intlk);
+  Serial.print("HV_ON:  ");
+  Serial.println(hv_signal);
   //Serial.println("****** End of sending data ******");
 }
 

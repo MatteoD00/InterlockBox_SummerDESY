@@ -36,6 +36,7 @@ def readData(arduino):
     dew = arduino.readline().decode().split()
     valflow = arduino.readline().decode().split()
     hv_intlk = arduino.readline().decode().split()
+    hv_on = arduino.readline().decode().split()
     sensname = ("").split()
     for i in range(nHYT):
         valsens.append(float(temp[i + 1]))
@@ -51,6 +52,8 @@ def readData(arduino):
     valsens.append(float(valflow[1]))
     sensname.append('hv_intlk')
     valsens.append(int(hv_intlk[1]))
+    sensname.append('hv_on')
+    valsens.append(int(hv_on[1]))
     return sensname, valsens
 
 

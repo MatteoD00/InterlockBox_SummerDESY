@@ -38,7 +38,7 @@ float readFlow(int n);
 void setupWiFi(const char* ssid, int status, byte* mac, bool testoutput);
 void scanNetworks();
 void printWiFiData();
-void sendDataDB(float* Temp, float* RH, float* DewPoint, const int nHYT, const int nNTC, float flow, bool hv_intlk);
+void sendDataDB(float* Temp, float* RH, float* DewPoint, const int nHYT, const int nNTC, float flow, bool hv_intlk, bool hv_signal);
 bool condition_door(int* gpio, const int nHYT, const int nNTC, float* temp, float* rh, float* dew, bool testmode = false);
 
 #endif
