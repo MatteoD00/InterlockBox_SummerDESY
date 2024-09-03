@@ -11,7 +11,7 @@ import random
 #Write to database
 def send2DB(sensors, values, ts):
         try:
-            time.sleep(0.70)
+            #time.sleep(0.70)
             post_params = ( ('db', 'test_PetalColdbox'), )
             for i in range(len(sensors)):
                 data_sent = sensors[i]+' value='+str(format(values[i], '.2f'))+' '+str(ts)
@@ -109,8 +109,8 @@ if __name__ == "__main__":
     shutdown = False
     testmode = True     #Flag for output of the functions
     testCO2 = False     #Flag to randomize CO2 status
-    arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=3)
-    time.sleep(5)
+    arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=3.)
+    #time.sleep(5)
     while not shutdown:
         shutdown = mainLoop(arduino, testmode, testCO2)
         #time.sleep(1.) #added to match arduino delay
