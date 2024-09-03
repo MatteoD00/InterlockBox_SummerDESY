@@ -69,6 +69,8 @@ def mainLoop(arduino, testmode, testCO2):
             sizesens = len(sensOut)
             sizeval = len(valOut)
             print(f'N of sensors: {sizesens}        N of values: {sizeval}\n')
+        if successDB:
+            print("Data correctly sent to Influx\n")
         """if not successDB:
             try:
                 send2DB(["testSignal1"],[0],int(time.time())*1000000000)
@@ -94,8 +96,8 @@ def mainLoop(arduino, testmode, testCO2):
 
 if __name__ == "__main__":
     shutdown = False
-    testmode = True
-    testCO2 = True
+    testmode = True     #Flag for output of the functions
+    testCO2 = False     #Flag to randomize CO2 status
     arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=3)
     time.sleep(5)
     while not shutdown:
