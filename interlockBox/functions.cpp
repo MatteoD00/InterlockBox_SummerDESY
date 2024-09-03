@@ -348,7 +348,7 @@ void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int
   Serial.println(hv_intlk);
   Serial.print("HV_ON:  ");
   Serial.println(hv_signal);
-  //Serial.println("****** End of sending data ******");
+  Serial.println("****** End communication ******");
 }
 
 bool condition_door(int* gpio, const int nHYT, const int nNTC, float* temp, float* rh, float* dew, bool testmode){

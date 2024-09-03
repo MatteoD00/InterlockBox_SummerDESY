@@ -26,36 +26,47 @@ def send2DB(sensors, values, ts):
 
 # reading and formatting lists of data
 def readData(arduino):
-    nsens = arduino.readline().decode().split() #read number of sensors
-    nHYT = int(nsens[1])
-    nNTC = int(nsens[3])
     valsens = ("").split()
-    valsens = ("").split()
-    temp = arduino.readline().decode().split()
-    hum = arduino.readline().decode().split()
-    dew = arduino.readline().decode().split()
-    valflow = arduino.readline().decode().split()
-    hv_intlk = arduino.readline().decode().split()
-    hv_on = arduino.readline().decode().split()
     sensname = ("").split()
-    for i in range(nHYT):
-        valsens.append(float(temp[i + 1]))
-        valsens.append(float(hum[i + 1]))
-        valsens.append(float(dew[i + 1]))
-        sensname.append(f'tempHYT{i}')
-        sensname.append(f'humHYT{i}')
-        sensname.append(f'dewHYT{i}')
-    for i in range(nNTC):
-        valsens.append(float(temp[i + nHYT + 1]))
-        sensname.append(f'NTC{i}')
-    sensname.append("flowmeter")
-    valsens.append(float(valflow[1]))
-    sensname.append('hv_intlk')
-    valsens.append(int(hv_intlk[1]))
-    sensname.append('hv_on')
-    valsens.append(int(hv_on[1]))
+    stringout = arduino.readline().decode()
+    while "End communication" not in stringout:
+        stringout.split()
+        try:
+            if "nHYT" in stringout[0]:
+                nsens = stringout #read number of sensors
+                nHYT = int(nsens[1])
+                nNTC = int(nsens[3])
+            elif "Temp" in stringout[0]:
+                temp = stringout
+                for i in range(nHYT):
+                    valsens.append(float(temp[i + 1]))
+                    sensname.append(f'tempHYT{i}')
+                for i in range(nNTC):
+                    valsens.append(float(temp[i + nHYT + 1]))
+                    sensname.append(f'NTC{i}')
+            elif "RH" in stringout[0]:
+                hum = stringout
+                for i in range(nHYT):
+                    valsens.append(float(hum[i + 1]))
+                    sensname.append(f'humHYT{i}')
+            elif "Dew" in stringout[0]:
+                dew = stringout
+                for i in range(nHYT):
+                    valsens.append(float(dew[i + 1]))
+                    sensname.append(f'dewHYT{i}')
+            elif "Flow" in stringout[0]:
+                sensname.append("flowmeter")
+                valsens.append(float(stringout[1]))
+            elif "HV_Intlk" in stringout[0]:
+                sensname.append('hv_intlk')
+                valsens.append(int(stringout[1]))
+            elif "HV_ON" in stringout[0]:
+                sensname.append('hv_on')
+                valsens.append(int(stringout[1]))
+        except:
+            print("Something went wrong while reading data from Arduino, impossible to upload to Influx")
+        stringout = arduino.readline().decode()
     return sensname, valsens
-
 
 def mainLoop(arduino, testmode, testCO2):
     shutdown = False 
