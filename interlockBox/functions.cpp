@@ -81,9 +81,9 @@ void set_CO2(SensirionI2CScd4x scd4x) {
 }
 
 void setDigitalPins(int* gpio){ // Set the default function (I/O) for the digital pins
-  pinMode(gpio[0], INPUT); // GPIO_1
-  pinMode(gpio[1], INPUT); // GPIO_2
-  pinMode(gpio[2], INPUT); // GPIO_3
+  pinMode(gpio[0], INPUT); // GPIO_1 used for button/switch/jumper
+  pinMode(gpio[1], INPUT); // GPIO_2 used for door status
+  pinMode(gpio[2], INPUT); // GPIO_3 used for HV ON signal
   pinMode(HV_INTLK, OUTPUT); // GPIO_4 used for HV interlock (modified on-board resistor to match optocoupler current)
   pinMode(RELAY4, OUTPUT);
 
@@ -318,7 +318,7 @@ void printWiFiData() {
 
 }
 
-void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int nNTC, float flow, bool hv_intlk = false, bool hv_signal = false){
+void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int nNTC, float flow, bool hv_intlk = false, bool hv_signal = false, bool solenoidstatus = false, bool doorstatus = false){
   Serial.flush();
   Serial.println("###### Sending data to PC ######");
   char msgDB[128];
@@ -348,6 +348,8 @@ void sendDataDB(float* Temp, float* RH, float* DewPoint,const int nHYT,const int
   Serial.println(hv_intlk);
   Serial.print("HV_ON:  ");
   Serial.println(hv_signal);
+  snprintf(msgDB,sizeof(msgDB),"Solenoid:  %d     Door:  %d",solenoidstatus,doorstatus);
+  Serial.println(msgDB);
   Serial.println("****** End communication ******");
 }
 

@@ -67,6 +67,12 @@ def readData(arduino):
                 hvon = stringout.split()
                 sensname.append('hv_on')
                 valsens.append(int(hvon[1]))
+            elif "Solenoid" in stringout:
+                words = stringout.split()
+                sensname.append('solenoid')
+                sensname.append('door')
+                valsens.append(int(words[1]))
+                valsens.append(int(words[3]))
         except:
             print("Something went wrong while reading data from Arduino, impossible to upload to Influx")
         stringout = arduino.readline().decode()

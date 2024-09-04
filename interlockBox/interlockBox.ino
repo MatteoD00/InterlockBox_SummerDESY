@@ -156,7 +156,7 @@ void loop() {
       //issueFlow() --> implement function if airflow too low
     }
   }
-  bool activateHV = digitalRead(gpio[1]) && (co2status == 1);
+  bool activateHV = digitalRead(gpio[0]) && (co2status == 1);
   // if may contain a function for HV related issues
   if(activateHV){
     digitalWrite(HV_INTLK, HIGH);
@@ -186,8 +186,16 @@ void loop() {
     snprintf(msg,sizeof(msg),"End of loop n.%d",nloop);
     Serial.println(msg);
   }
+  if(digitalRead(gpio[0])){
+    digitalWrite(RELAY4, HIGH);
+  }
+  else{
+    digitalWrite(RELAY4, LOW);
+  }
+  bool solenoidstatus = digitalRead(RELAY4);
+  bool doorstatus = digitalRead(gpio[1]);
   // Switching off Digital sensors
   digitalWrite(SENS_PW, HIGH);
   bool hv_intlk = !digitalRead(HV_INTLK);
-  sendDataDB(Temp, RH, DewPoint, nHYT, nNTC, flow, hv_intlk, digitalRead(HV_SIGNAL));
+  sendDataDB(Temp, RH, DewPoint, nHYT, nNTC, flow, hv_intlk, digitalRead(HV_SIGNAL),solenoidstatus,doorstatus);
 }
